@@ -14,6 +14,8 @@ using UnityEngine.UI;
     using System.Net;
 #endif
 
+
+
 public class FirstPersonController : MonoBehaviour
 {
     private Rigidbody rb;
@@ -68,6 +70,7 @@ public class FirstPersonController : MonoBehaviour
     public bool unlimitedSprint = false;
     public KeyCode sprintKey = KeyCode.LeftShift;
     public float sprintSpeed = 7f;
+    public float sprintMulty = 2f;
     public float sprintDuration = 5f;
     public float sprintCooldown = .5f;
     public float sprintFOV = 80f;
@@ -131,6 +134,16 @@ public class FirstPersonController : MonoBehaviour
 
     #endregion
 
+    #region Footstep Sound
+
+    public AudioSource footstepAudioSource;
+    public AudioClip walkingSound;
+
+    // Internal Variables
+    private bool wasWalking = false;
+
+    #endregion
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -146,6 +159,13 @@ public class FirstPersonController : MonoBehaviour
         {
             sprintRemaining = sprintDuration;
             sprintCooldownReset = sprintCooldown;
+        }
+
+        if (footstepAudioSource == null)
+        {
+            footstepAudioSource = gameObject.AddComponent<AudioSource>();
+            footstepAudioSource.spatialBlend = 1f;
+            footstepAudioSource.volume = 0.5f;
         }
     }
 
@@ -375,19 +395,42 @@ public class FirstPersonController : MonoBehaviour
 
             // Checks if player is walking and isGrounded
             // Will allow head bob
-            if (targetVelocity.x != 0 || targetVelocity.z != 0 && isGrounded)
+            if (targetVelocity.x != 0 || targetVelocity.z != 0)
             {
                 isWalking = true;
+                Debug.Log("Walking");
             }
             else
             {
                 isWalking = false;
             }
 
+
+
+            if (footstepAudioSource != null && walkingSound != null)
+            {
+                if (isWalking && !wasWalking)
+                {
+                    // Начинаем воспроизведение когда начинаем идти
+                    footstepAudioSource.clip = walkingSound;
+                    footstepAudioSource.loop = true; // Звук будет зациклен
+                    footstepAudioSource.Play();
+                }
+                else if (!isWalking && wasWalking)
+                {
+                    // Останавливаем когда перестаем идти
+                    footstepAudioSource.Stop();
+                }
+            }
+
+            wasWalking = isWalking;
+
+
+
             // All movement calculations shile sprint is active
             if (enableSprint && Input.GetKey(sprintKey) && sprintRemaining > 0f && !isSprintCooldown)
             {
-                targetVelocity = transform.TransformDirection(targetVelocity) * sprintSpeed;
+                targetVelocity = transform.TransformDirection(targetVelocity) * (walkSpeed * 2);
 
                 // Apply a force that attempts to reach our target velocity
                 Vector3 velocity = rb.linearVelocity;
@@ -550,8 +593,8 @@ public class FirstPersonController : MonoBehaviour
 
         EditorGUILayout.Space();
         GUILayout.Label("Modular First Person Controller", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold, fontSize = 16 });
-        GUILayout.Label("By Jess Case", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Normal, fontSize = 12 });
-        GUILayout.Label("version 1.0.1", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Normal, fontSize = 12 });
+        GUILayout.Label("Modified By ZeuwsFrade", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Normal, fontSize = 12 });
+        GUILayout.Label("version 1.2", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Normal, fontSize = 12 });
         EditorGUILayout.Space();
 
         #region Camera Setup
@@ -632,6 +675,7 @@ public class FirstPersonController : MonoBehaviour
         fpc.unlimitedSprint = EditorGUILayout.ToggleLeft(new GUIContent("Unlimited Sprint", "Determines if 'Sprint Duration' is enabled. Turning this on will allow for unlimited sprint."), fpc.unlimitedSprint);
         fpc.sprintKey = (KeyCode)EditorGUILayout.EnumPopup(new GUIContent("Sprint Key", "Determines what key is used to sprint."), fpc.sprintKey);
         fpc.sprintSpeed = EditorGUILayout.Slider(new GUIContent("Sprint Speed", "Determines how fast the player will move while sprinting."), fpc.sprintSpeed, fpc.walkSpeed, 20f);
+        fpc.sprintMulty = EditorGUILayout.Slider(new GUIContent("Sprint Multy", "Determines how fast the player will move while sprinting."), fpc.sprintMulty, fpc.walkSpeed, 2f);
 
         //GUI.enabled = !fpc.unlimitedSprint;
         fpc.sprintDuration = EditorGUILayout.Slider(new GUIContent("Sprint Duration", "Determines how long the player can sprint while unlimited sprint is disabled."), fpc.sprintDuration, 1f, 20f);
@@ -728,8 +772,40 @@ public class FirstPersonController : MonoBehaviour
 
         #endregion
 
+        #region Audio Setup
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        GUILayout.Label("Audio Setup", new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold, fontSize = 13 }, GUILayout.ExpandWidth(true));
+        EditorGUILayout.Space();
+
+        fpc.footstepAudioSource = (AudioSource)EditorGUILayout.ObjectField(new GUIContent("Footstep Audio Source", "AudioSource component to play walking sounds."), fpc.footstepAudioSource, typeof(AudioSource), true);
+
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.PrefixLabel(new GUIContent("Walking Sound", "Sound clip to play when player is walking."));
+        fpc.walkingSound = (AudioClip)EditorGUILayout.ObjectField(fpc.walkingSound, typeof(AudioClip), false);
+        EditorGUILayout.EndHorizontal();
+
+        // Если AudioSource не назначен, показываем кнопку для его добавления
+        if (fpc.footstepAudioSource == null)
+        {
+            EditorGUILayout.Space();
+            if (GUILayout.Button("Add AudioSource Component"))
+            {
+                AudioSource newAudioSource = fpc.gameObject.AddComponent<AudioSource>();
+                newAudioSource.spatialBlend = 1f; // 3D sound
+                newAudioSource.volume = 0.5f;
+                newAudioSource.loop = true;
+                fpc.footstepAudioSource = newAudioSource;
+                EditorUtility.SetDirty(fpc);
+            }
+            EditorGUILayout.HelpBox("No AudioSource assigned. Assign an AudioSource or click the button above to add one automatically.", MessageType.Info);
+        }
+
+        #endregion
+
         //Sets any changes from the prefab
-        if(GUI.changed)
+        if (GUI.changed)
         {
             EditorUtility.SetDirty(fpc);
             Undo.RecordObject(fpc, "FPC Change");
