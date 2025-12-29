@@ -11,7 +11,7 @@ public class InventoryItem
     public int quantity;
     public int maxStackSize;
     public CollectableItem originalItem;
-    public GameObject itemPrefab; // Префаб для создания объекта при выбрасывании
+    public GameObject itemPrefab;
 
     public InventoryItem(CollectableItem item)
     {
@@ -63,7 +63,6 @@ public class Inventory : MonoBehaviour
         UpdateUI();
         SelectSlot(0);
 
-        // Находим игрока
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
@@ -184,10 +183,8 @@ public class Inventory : MonoBehaviour
         {
             InventoryItem itemToDrop = items[selectedSlot];
 
-            // Получаем префаб из CollectableItem
             GameObject prefabToDrop = itemToDrop.itemPrefab;
 
-            // Альтернативно: если префаб не назначен, пробуем загрузить по имени
             if (prefabToDrop == null && itemToDrop.originalItem != null)
             {
                 prefabToDrop = itemToDrop.originalItem.GetItemPrefab();
@@ -198,14 +195,12 @@ public class Inventory : MonoBehaviour
                 Vector3 dropPosition = playerTransform.position + playerTransform.forward * 2f + Vector3.up;
                 GameObject droppedItem = Instantiate(prefabToDrop, dropPosition, Quaternion.identity);
 
-                // Добавляем Rigidbody если его нет
                 Rigidbody rb = droppedItem.GetComponent<Rigidbody>();
                 if (rb == null)
                 {
                     rb = droppedItem.AddComponent<Rigidbody>();
                 }
 
-                // Бросаем предмет вперед
                 rb.AddForce(playerTransform.forward * 5f, ForceMode.Impulse);
 
                 Debug.Log($"Выброшен предмет: {itemToDrop.itemName}");
@@ -221,7 +216,6 @@ public class Inventory : MonoBehaviour
 
     void UpdateUI()
     {
-        // Обновляем все слоты
         for (int i = 0; i < maxSlots; i++)
         {
             if (i < items.Count)

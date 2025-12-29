@@ -35,7 +35,6 @@ public class MenuButtonsController : MonoBehaviour
 
     void Update()
     {
-        // Закрытие опций по ESC
         if (closeOptionsWithESC && Input.GetKeyDown(KeyCode.Escape))
         {
             CloseOptions();
@@ -102,12 +101,9 @@ public class MenuButtonsController : MonoBehaviour
 
     private System.Collections.IEnumerator LoadGameScene()
     {
-        // Добавьте здесь эффекты (затемнение, анимация и т.д.)
 
-        // Ждём завершения кадра
         yield return null;
 
-        // Загружаем сцену
         if (!string.IsNullOrEmpty(gameSceneName))
         {
             SceneManager.LoadScene(gameSceneName);
@@ -139,7 +135,6 @@ public class MenuButtonsController : MonoBehaviour
         QuitGame();
     }
 
-    // Закрытие окна опций
     public void CloseOptions()
     {
         if (optionsPopup != null && optionsPopup.activeSelf)
@@ -149,7 +144,6 @@ public class MenuButtonsController : MonoBehaviour
     }
 
 
-    // Методы для внешнего вызова (например, из других скриптов)
     public void LoadScene(string sceneName)
     {
         if (!string.IsNullOrEmpty(sceneName))

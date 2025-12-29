@@ -1,13 +1,10 @@
 using UnityEngine;
 
-// Альтернатива, если у вас есть доступ к полям контроллера
 public class PlayerTrapEffects : MonoBehaviour
 {
-    // Публичные поля для связи с контроллером
     [Header("Ссылки на контроллер")]
     [SerializeField] private MonoBehaviour playerController;
 
-    // Имена полей для изменения (через Reflection)
     [Header("Имена полей контроллера")]
     [SerializeField] private string moveSpeedFieldName = "moveSpeed";
 
@@ -34,16 +31,11 @@ public class PlayerTrapEffects : MonoBehaviour
 
     private System.Collections.IEnumerator SlowEffectCoroutine(float slowFactor, float duration, bool affectSpeed, bool affectJump)
     {
-        // Сохраняем оригинальные значения
         SaveOriginalValues(affectSpeed, affectJump);
-
-        // Применяем замедление
         ApplySlowValues(slowFactor, affectSpeed, affectJump);
 
-        // Ждем
         yield return new WaitForSeconds(duration);
 
-        // Восстанавливаем
         RestoreOriginalValues(affectSpeed, affectJump);
 
         currentEffectCoroutine = null;

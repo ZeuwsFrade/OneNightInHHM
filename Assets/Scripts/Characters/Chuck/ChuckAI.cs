@@ -12,7 +12,7 @@ public class ChuckAI : MonoBehaviour
     public AudioClip YellingSound;
 
     [Header("Преследование")]
-    public float chaseTimeAfterLostSight = 5f; // Таймер продолжения преследования
+    public float chaseTimeAfterLostSight = 5f;
     private float chaseTimer = 0f;
     private Vector3 lastKnownPlayerPosition;
 
@@ -24,8 +24,8 @@ public class ChuckAI : MonoBehaviour
     private bool isWaiting = false;
 
     [Header("Двери")]
-    public float doorDetectionRange = 3f; // Дистанция обнаружения двери
-    public float doorInteractionAngle = 45f; // Угол для открытия двери
+    public float doorDetectionRange = 3f;
+    public float doorInteractionAngle = 45f;
     public LayerMask doorLayer = 6;
     private bool hasDoorInFront = false;
     private DoorController nearestDoor;
@@ -43,7 +43,6 @@ public class ChuckAI : MonoBehaviour
             yellingAudioSource.loop = false;
         }
 
-        // Автонастройка слоя дверей если не задан
         if (doorLayer.value == 0)
         {
             doorLayer = LayerMask.GetMask("Interactables");
@@ -57,64 +56,51 @@ public class ChuckAI : MonoBehaviour
 
         if (canSeePlayer)
         {
-            // Если видим игрока
             if (!isChasing)
             {
                 StartChasing();
             }
 
-            // Обновляем последнюю известную позицию и сбрасываем таймер
             lastKnownPlayerPosition = playerTransform.position;
             chaseTimer = chaseTimeAfterLostSight;
 
-            // Преследуем текущую позицию игрока
             agent.SetDestination(playerTransform.position);
         }
         else if (isChasing)
         {
-            // Если не видим игрока, но все еще в режиме преследования
             chaseTimer -= Time.deltaTime;
 
             if (chaseTimer > 0)
             {
-                // Продолжаем двигаться к последней известной позиции
                 agent.SetDestination(lastKnownPlayerPosition);
 
-                // Можно добавить проверку достижения последней позиции
                 if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
                 {
-                    // Ищем вокруг последней позиции
                     SearchAroundLastPosition();
                 }
             }
             else
             {
-                // Таймер истек - прекращаем преследование
                 StopChasing();
                 Patrol();
             }
         }
         else
         {
-            // Патрулируем, если не преследуем
             Patrol();
         }
 
-        // Проверяем двери только во время преследования
         if (isChasing)
         {
             CheckForDoors();
         }
     }
 
-    // Проверка и взаимодействие с дверями
     void CheckForDoors()
     {
-        // Сбрасываем состояние
         hasDoorInFront = false;
         nearestDoor = null;
 
-        // Получаем все двери в радиусе
         Collider[] doorsInRange = Physics.OverlapSphere(transform.position, doorDetectionRange, doorLayer);
 
         if (doorsInRange.Length > 0)
@@ -131,7 +117,6 @@ public class ChuckAI : MonoBehaviour
                     Vector3 toDoor = doorCollider.transform.position - transform.position;
                     float distance = toDoor.magnitude;
 
-                    // Проверяем угол между направлением движения и направлением к двери
                     float angleToDoor = Vector3.Angle(agent.velocity.normalized, toDoor.normalized);
 
                     if (angleToDoor < doorInteractionAngle && distance < closestDistance)
@@ -148,7 +133,6 @@ public class ChuckAI : MonoBehaviour
                 hasDoorInFront = true;
                 nearestDoor = closestDoor;
 
-                // Открываем дверь если она закрыта
                 if (!nearestDoor.isOpen)
                 {
                     OpenDoor(nearestDoor);
@@ -157,27 +141,19 @@ public class ChuckAI : MonoBehaviour
         }
     }
 
-    // Метод открытия двери
     void OpenDoor(DoorController door)
     {
         if (door != null && !door.isOpen)
         {
-            // Определяем сторону открытия двери относительно монстра
             Vector3 toDoor = door.transform.position - transform.position;
             Vector3 doorForward = door.transform.forward;
 
-            // Проверяем, с какой стороны от двери находится монстр
             float dotProduct = Vector3.Dot(toDoor.normalized, doorForward);
 
-            // Можно добавить логику для определения направления открытия
-            // (лево/право) если это важно для геймплея
-
             door.OpenDoor(true);
-            Debug.Log($"Монстр открыл дверь: {door.gameObject.name}");
         }
     }
 
-    // Метод для начала преследования
     void StartChasing()
     {
         isChasing = true;
@@ -192,10 +168,8 @@ public class ChuckAI : MonoBehaviour
             }
         }
 
-        Debug.Log("Монстр начал преследование!");
     }
 
-    // Метод для остановки преследования
     void StopChasing()
     {
         isChasing = false;
@@ -206,14 +180,10 @@ public class ChuckAI : MonoBehaviour
         {
             yellingAudioSource.Stop();
         }
-
-        Debug.Log("Монстр прекратил преследование!");
     }
 
-    // Поиск вокруг последней известной позиции
     void SearchAroundLastPosition()
     {
-        // Можно добавить случайное перемещение вблизи последней позиции
         Vector3 randomDirection = Random.insideUnitSphere * 3f;
         randomDirection.y = 0;
         Vector3 searchPosition = lastKnownPlayerPosition + randomDirection;
@@ -263,6 +233,17 @@ public class ChuckAI : MonoBehaviour
             {
                 currentPatrolIndex = (currentPatrolIndex + 1) % patrolPoints.Length;
                 isWaiting = false;
+            }
+        }
+    }
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            PlayerInteraction playerDeath= collision.gameObject.GetComponent<PlayerInteraction>();
+            if (playerDeath != null)
+            {
+                playerDeath.Death();
             }
         }
     }

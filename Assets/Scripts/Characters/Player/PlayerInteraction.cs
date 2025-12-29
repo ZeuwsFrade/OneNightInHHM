@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerInteraction : MonoBehaviour
 {
@@ -10,6 +11,10 @@ public class PlayerInteraction : MonoBehaviour
     [Header("References")]
     public Transform itemDropPoint;
 
+    [Header("Death Menu")]
+    public string gameSceneName = "DeathMenu";
+
+
     private Camera playerCamera;
     private DoorController currentDoor;
     private CollectableItem currentCollectable;
@@ -17,15 +22,12 @@ public class PlayerInteraction : MonoBehaviour
 
     void Start()
     {
-        // Находим камеру
         playerCamera = GetComponentInChildren<Camera>();
         if (playerCamera == null)
         {
             playerCamera = Camera.main;
             Debug.LogWarning("PlayerInteraction: Камера не найдена на игроке, используется Main Camera");
         }
-
-        // Находим Inventory через InventoryManager
         GameObject inventoryManager = GameObject.Find("InventoryManager");
         if (inventoryManager != null)
         {
@@ -35,8 +37,6 @@ public class PlayerInteraction : MonoBehaviour
         {
             Debug.LogError("PlayerInteraction: Не найден InventoryManager на сцене!");
         }
-
-        // Если точка выброса не назначена, создаем её
         if (itemDropPoint == null)
         {
             GameObject dropPoint = new GameObject("ItemDropPoint");
@@ -63,6 +63,16 @@ public class PlayerInteraction : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit, interactionDistance, interactionLayer))
         {
+            // Проверяем сначала на LockedDoorController
+            LockedDoorController lockedDoor = hit.collider.GetComponent<LockedDoorController>();
+            if (lockedDoor != null)
+            {
+                currentDoor = lockedDoor; // DoorController является родительским классом
+                currentCollectable = null;
+                return;
+            }
+
+            // Проверяем обычную дверь
             DoorController door = hit.collider.GetComponent<DoorController>();
             CollectableItem collectable = hit.collider.GetComponent<CollectableItem>();
 
@@ -84,6 +94,7 @@ public class PlayerInteraction : MonoBehaviour
         currentCollectable = null;
     }
 
+
     void HandleInteractionInput()
     {
         if (Input.GetKeyDown(interactionKey))
@@ -94,14 +105,13 @@ public class PlayerInteraction : MonoBehaviour
             }
             else if (currentCollectable != null && inventory != null)
             {
-                // Подбираем предмет
                 if (inventory.AddItem(currentCollectable))
                 {
                     Debug.Log($"Подобран предмет: {currentCollectable.itemName}");
                 }
                 else
                 {
-                    Debug.Log("Не удалось подобрать предмет. Инвентарь может быть полон.");
+                    Debug.Log("Не удалось подобрать предмет.");
                 }
             }
         }
@@ -109,34 +119,36 @@ public class PlayerInteraction : MonoBehaviour
 
     void OnGUI()
     {
-        // Показ подсказки для взаимодействия
         if (currentDoor != null)
         {
-            ShowInteractionPrompt("Нажмите E чтобы взаимодействовать");
+            string prompt = "Нажмите E чтобы взаимодействовать";
+
+            LockedDoorController lockedDoor = currentDoor as LockedDoorController;
+            if (lockedDoor != null && lockedDoor.isLocked)
+            {
+                if (lockedDoor is KeyLockedDoor keyDoor)
+                {
+                    prompt = $"Дверь заперта\nТребуется ключ: {keyDoor.requiredKeyName}";
+                }
+                else if (lockedDoor is ItemTriggerDoor itemDoor)
+                {
+                    prompt = $"Дверь заперта\nБросьте предмет с тегом '{itemDoor.requiredTag}' в зону";
+                }
+                else
+                {
+                    prompt = "Дверь заперта";
+                }
+            }
+
+            ShowInteractionPrompt(prompt);
         }
         else if (currentCollectable != null)
         {
             ShowInteractionPrompt($"Нажмите E чтобы подобрать {currentCollectable.itemName}");
         }
-
-        // Показ выбранного предмета в правом верхнем углу
-        if (inventory != null)
-        {
-            InventoryItem selectedItem = inventory.GetSelectedItem();
-            if (selectedItem != null)
-            {
-                GUIStyle boxStyle = new GUIStyle(GUI.skin.box);
-                boxStyle.alignment = TextAnchor.MiddleLeft;
-                boxStyle.fontSize = 14;
-                boxStyle.normal.textColor = Color.white;
-
-                GUI.Box(new Rect(Screen.width - 210, 10, 200, 60),
-                       $"Выбран: {selectedItem.itemName}");
-            }
-        }
     }
 
-    void ShowInteractionPrompt(string text)
+        void ShowInteractionPrompt(string text)
     {
         GUIStyle style = new GUIStyle(GUI.skin.box);
         style.alignment = TextAnchor.MiddleCenter;
@@ -150,5 +162,25 @@ public class PlayerInteraction : MonoBehaviour
         float y = Screen.height - 120;
 
         GUI.Box(new Rect(x, y, width, height), text, style);
+    }
+
+    public void Death()
+    {
+        StartCoroutine(LoadGameScene());
+    }
+
+    private System.Collections.IEnumerator LoadGameScene()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        yield return null;
+        if (!string.IsNullOrEmpty(gameSceneName))
+        {
+            SceneManager.LoadScene(gameSceneName);
+        }
+        else
+        {
+            Debug.LogError("Game scene name is not set!");
+        }
     }
 }
