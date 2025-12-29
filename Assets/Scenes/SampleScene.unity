@@ -10667,14 +10667,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa627d7b68e96dd4b9cbf843d09782a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTag: Player
-  isOneTimeUse: 1
-  isActive: 1
-  activationDelay: 0
-  activationEffect: {fileID: 0}
-  activationSound: {fileID: 0}
-  audioSource: {fileID: 0}
-  deathMessage: You are dead...
 --- !u!65 &362000314
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -13181,14 +13173,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa627d7b68e96dd4b9cbf843d09782a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTag: Player
-  isOneTimeUse: 1
-  isActive: 1
-  activationDelay: 0
-  activationEffect: {fileID: 0}
-  activationSound: {fileID: 0}
-  audioSource: {fileID: 0}
-  deathMessage: You are dead...
 --- !u!65 &460141086
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -18909,20 +18893,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db9996cd358259d42baabca9ef15eeb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTag: Player
-  isOneTimeUse: 1
-  isActive: 1
-  activationDelay: 0
-  activationEffect: {fileID: 0}
-  activationSound: {fileID: 0}
-  audioSource: {fileID: 0}
-  teleportDestination: {fileID: 386999602}
-  teleportOffset: {x: 0, y: 0, z: 0}
-  maintainPlayerRotation: 0
-  fadeScreen: 0
-  fadeDuration: 0.5
-  teleportParticles: {fileID: 0}
-  teleportSound: {fileID: 0}
 --- !u!65 &688869556
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -28076,7 +28046,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!195 &1048981764
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -34947,14 +34917,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa627d7b68e96dd4b9cbf843d09782a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTag: Player
-  isOneTimeUse: 1
-  isActive: 1
-  activationDelay: 0
-  activationEffect: {fileID: 0}
-  activationSound: {fileID: 0}
-  audioSource: {fileID: 0}
-  deathMessage: You are dead...
 --- !u!1001 &1352344332
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -37714,17 +37676,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f20546a6c28e6fc4a85509f948ee67c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTag: Player
-  isOneTimeUse: 1
-  isActive: 1
-  activationDelay: 0
-  activationEffect: {fileID: 0}
-  activationSound: {fileID: 0}
-  audioSource: {fileID: 0}
-  slowFactor: 0.5
-  slowDuration: 5
-  affectMovementSpeed: 1
-  affectJumpHeight: 0
 --- !u!65 &1474285603
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -42641,14 +42592,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa627d7b68e96dd4b9cbf843d09782a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTag: Player
-  isOneTimeUse: 1
-  isActive: 1
-  activationDelay: 0
-  activationEffect: {fileID: 0}
-  activationSound: {fileID: 0}
-  audioSource: {fileID: 0}
-  deathMessage: You are dead...
 --- !u!65 &1690163360
 BoxCollider:
   m_ObjectHideFlags: 0
